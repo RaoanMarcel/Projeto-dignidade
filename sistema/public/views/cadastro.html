@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/imask"></script>
 </head>
 <body class="bg-slate-100 h-screen w-screen overflow-hidden p-4 flex justify-center items-center font-sans text-slate-800">
 
@@ -49,11 +50,11 @@
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col flex-1 justify-center gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1.5">Nome de Registro</label>
-                        <input type="text" name="nome" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" autofocus tabindex="1">
+                        <input type="text" name="nome" placeholder="Nome completo" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" autofocus tabindex="1">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1.5">Apelido / Nome Social</label>
-                        <input type="text" name="apelido" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="2">
+                        <input type="text" name="apelido" placeholder="Como prefere ser chamado" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="2">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -61,8 +62,8 @@
                             <input type="date" name="primeiro_dia" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="3">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">Documento (RG/CPF)</label>
-                            <input type="text" name="documento" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="4">
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">Documento</label>
+                            <input type="text" id="documento" name="documento" placeholder="RG ou CPF" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="4">
                         </div>
                     </div>
                 </div>
@@ -75,13 +76,28 @@
                         <i class="ph ph-users-three text-indigo-600 text-xl"></i> Vínculos e Origem
                     </h3>
                     <div class="flex flex-col gap-4 h-full justify-between">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Naturalidade (Cidade/Estado)</label><input type="text" name="naturalidade" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="5"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Escolaridade</label><input type="text" name="escolaridade" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="6"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Nome da Mãe</label><input type="text" name="mae" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="7"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Nome do Pai</label><input type="text" name="pai" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="8"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Irmãos (Qtd ou Nomes)</label><input type="text" name="irmaos" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="9"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Esposa / Companheira</label><input type="text" name="esposa" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="10"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Filhos (Qtd, Idades ou Nomes)</label><input type="text" name="filhos" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="11"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Naturalidade</label><input type="text" name="naturalidade" placeholder="Cidade / Estado" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="5"></div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">Escolaridade</label>
+                            <select name="escolaridade" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 cursor-pointer" tabindex="6">
+                                <option value="" disabled selected>Selecione o nível de ensino...</option>
+                                <option value="Analfabeto">Analfabeto</option>
+                                <option value="Sabe ler/escrever">Sabe ler/escrever (Sem formação)</option>
+                                <option value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</option>
+                                <option value="Ensino Fundamental Completo">Ensino Fundamental Completo</option>
+                                <option value="Ensino Médio Incompleto">Ensino Médio Incompleto</option>
+                                <option value="Ensino Médio Completo">Ensino Médio Completo</option>
+                                <option value="Ensino Superior Incompleto">Ensino Superior Incompleto</option>
+                                <option value="Ensino Superior Completo">Ensino Superior Completo</option>
+                            </select>
+                        </div>
+
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Nome da Mãe</label><input type="text" name="mae" placeholder="Nome completo da mãe" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="7"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Nome do Pai</label><input type="text" name="pai" placeholder="Nome completo do pai" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="8"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Irmãos</label><input type="text" name="irmaos" placeholder="Quantidade ou nomes" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="9"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Esposa / Companheira</label><input type="text" name="esposa" placeholder="Nome da companheira atual" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="10"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Filhos</label><input type="text" name="filhos" placeholder="Quantidade, idades ou nomes" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="11"></div>
                     </div>
                 </div>
             </div>
@@ -119,9 +135,9 @@
                         </div>
                     </div>
                     <div class="flex flex-col gap-4">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Condições de Saúde (Ex: Pressão alta)</label><input type="text" name="saude" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="16"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Alergias</label><input type="text" name="alergias" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="17"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Vícios / Dependência</label><input type="text" name="vicios" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="18"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Condições de Saúde</label><input type="text" name="saude" placeholder="Ex: Pressão alta, diabetes, asma..." class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="16"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Alergias</label><input type="text" name="alergias" placeholder="Ex: Penicilina, frutos do mar..." class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="17"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Vícios / Dependência</label><input type="text" name="vicios" placeholder="Ex: Tabagismo, álcool..." class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="18"></div>
                     </div>
                 </div>
 
@@ -130,11 +146,11 @@
                         <i class="ph ph-briefcase text-blue-600 text-xl"></i> Contato e Profissional
                     </h3>
                     <div class="flex flex-col gap-4 h-full justify-between">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Telefone (Recado ou Próprio)</label><input type="text" name="telefone" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="19"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Endereço (Referência)</label><input type="text" name="endereco" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="20"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Telefone</label><input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="19"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">Endereço</label><input type="text" name="endereco" placeholder="Rua, bairro ou ponto de referência" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" tabindex="20"></div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1.5">Aptidões Profissionais</label>
-                            <input list="listaAptidoes" name="aptidoes" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" placeholder="Ex: Pedreiro, Pintor..." tabindex="21">
+                            <input list="listaAptidoes" name="aptidoes" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 font-medium transition-all placeholder-slate-400 hover:border-indigo-300 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/10" placeholder="Ex: Pedreiro, Pintor, Cozinheiro..." tabindex="21">
                             <datalist id="listaAptidoes">
                                 <option value="Pedreiro"><option value="Servente"><option value="Pintor"><option value="Carpinteiro"><option value="Cozinheiro"><option value="Jardineiro"><option value="Mecânico">
                             </datalist>
@@ -163,5 +179,32 @@
     </form>
 
     <script src="/js/webcam.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Máscara de Telefone: Aceita 8 ou 9 dígitos (com ou sem DDD, se adapta sozinho)
+            const telefoneInput = document.getElementById('telefone');
+            IMask(telefoneInput, {
+                mask: [
+                    { mask: '(00) 0000-0000' },
+                    { mask: '(00) 00000-0000' }
+                ]
+            });
+
+            // Máscara de Documento (Flexível para CPF ou RG)
+            // Tenta formatar como CPF se bater os 11 números, senão aceita Letras e Números (para RG)
+            const documentoInput = document.getElementById('documento');
+            IMask(documentoInput, {
+                mask: [
+                    {
+                        mask: '000.000.000-00', // Máscara de CPF
+                    },
+                    {
+                        mask: /^[a-zA-Z0-9.-]+$/, // Permite digitar um RG livremente, caso não seja CPF
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
-</html> 
+</html>
