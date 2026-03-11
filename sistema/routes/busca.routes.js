@@ -16,6 +16,8 @@ async function buscaRoutes(fastify, options) {
     });
 
     fastify.post('/buscar', buscaController.buscarBeneficiario);
+    
+    fastify.get('/beneficiario/:id', buscaController.abrirModalBeneficiario);
 }
 
 module.exports = buscaRoutes;
