@@ -1,21 +1,17 @@
+// routes/cadastro.routes.js
 const path = require('path');
 const fs = require('fs');
 const cadastroController = require('../controllers/cadastro.controller'); 
 
 async function cadastroRoutes(fastify, options) {
-    
-    fastify.get('/cadastro', async (request, reply) => {
-        try {
-            const filePath = path.join(__dirname, '../public/views/cadastro.html');
-            const html = fs.readFileSync(filePath, 'utf8');
-            reply.type('text/html').send(html);
-        } catch (error) {
-            fastify.log.error(error);
-            reply.status(500).send("Erro ao carregar a tela de cadastro. " + error.message);
-        }
+    // Retorna o fragmento do form de cadastro
+    fastify.get('/view-cadastro', async (request, reply) => {
+        const filePath = path.join(__dirname, '../public/views/cadastro.html');
+        const html = fs.readFileSync(filePath, 'utf8');
+        reply.type('text/html').send(html);
     });
 
+    // Salva os dados
     fastify.post('/cadastrar', cadastroController.cadastrarBeneficiario);
 }
-
 module.exports = cadastroRoutes;
