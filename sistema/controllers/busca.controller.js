@@ -72,21 +72,38 @@ exports.buscarBeneficiario = async (request, reply) => {
 exports.abrirModalBeneficiario = async (request, reply) => {
     const id = parseInt(request.params.id);
     
-    // BUSCA REAL DO BENEFICIÁRIO ESPECÍFICO
+    // BUSCA REAL DO BENEFICIÁRIO
     const pessoa = db.prepare('SELECT * FROM beneficiarios WHERE id = ?').get(id);
 
     if (!pessoa) {
         return reply.status(404).send('<p class="text-rose-500">Beneficiário não encontrado.</p>');
     }
 
+    // BUSCA DAS ANOTAÇÕES DO DIÁRIO DE BORDO
+    const notas = db.prepare('SELECT * FROM diario_bordo WHERE beneficiario_id = ? ORDER BY id DESC').all(id);
+    
+    // Monta o HTML das notas para injetar no modal
+    let htmlNotas = '';
+    if (notas.length === 0) {
+        htmlNotas = '<p class="text-sm text-slate-400 italic text-center py-4" id="sem-notas">Nenhuma anotação registrada ainda.</p>';
+    } else {
+        notas.forEach(nota => {
+            // Formata a data (ex: 14/03/2026 às 15:30)
+            const dataReg = new Date(nota.data_registro).toLocaleString('pt-BR');
+            htmlNotas += `
+                <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 mb-1"><i class="ph ph-clock text-indigo-400"></i> ${dataReg}</p>
+                    <p class="text-sm text-slate-700 font-medium">${nota.anotacao}</p>
+                </div>
+            `;
+        });
+    }
+
     const dataFormatada = pessoa.primeiro_dia ? pessoa.primeiro_dia.split('-').reverse().join('/') : '-';
-    // No BD, autorizacao_imagem é Integer (1 ou 0)
     const tagImagem = pessoa.autorizacao_imagem === 1 
         ? '<span class="text-emerald-300 flex items-center gap-1"><i class="ph ph-check-circle"></i> Autoriza Uso de Imagem</span>' 
         : '<span class="text-rose-300 flex items-center gap-1"><i class="ph ph-x-circle"></i> Não Autoriza Imagem</span>';
 
-    // O restante do seu HTML exato (encurtado aqui por questões de espaço, mas é o MESMO do seu)
-    // NOTA: Colei a sua variável modalHtml idêntica logo abaixo:
     const modalHtml = `
         <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 lg:p-8 transition-opacity" onclick="if(event.target === this) document.getElementById('modal-container').innerHTML = ''">
             <div class="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden relative flex flex-col max-h-[95vh]">
@@ -162,8 +179,26 @@ exports.abrirModalBeneficiario = async (request, reply) => {
                     </div>
 
                     <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                        <h3 class="text-xs font-black text-amber-800 uppercase tracking-wider mb-1 flex items-center gap-2"><i class="ph ph-warning-circle text-amber-600"></i> Observações</h3>
+                        <h3 class="text-xs font-black text-amber-800 uppercase tracking-wider mb-1 flex items-center gap-2"><i class="ph ph-warning-circle text-amber-600"></i> Observações da Recepção</h3>
                         <p class="text-amber-900 text-sm font-medium">${pessoa.observacoes || 'Sem observações cadastradas.'}</p>
+                    </div>
+
+                    <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+                        <h3 class="text-sm font-black text-indigo-800 uppercase tracking-wider mb-4 border-b border-indigo-200 pb-2 flex items-center gap-2">
+                            <i class="ph ph-notebook text-indigo-600 text-lg"></i> Diário de Bordo (Evolução)
+                        </h3>
+                        
+                        <form hx-post="/diario/${pessoa.id}" hx-target="#lista-notas" hx-swap="afterbegin" hx-on::after-request="this.reset()" class="mb-5 flex gap-3">
+                            <input type="text" name="anotacao" placeholder="O que aconteceu hoje? (Ex: Encaminhado para vaga de emprego)" required 
+                                class="flex-1 rounded-xl border border-indigo-200 bg-white p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                            <button type="submit" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shrink-0 flex items-center gap-2">
+                                <i class="ph ph-plus-circle text-lg"></i> Registrar
+                            </button>
+                        </form>
+
+                        <div id="lista-notas" class="flex flex-col gap-3 max-h-60 overflow-y-auto pr-2">
+                            ${htmlNotas}
+                        </div>
                     </div>
                 </div>
                 
@@ -285,5 +320,40 @@ exports.atualizarBeneficiario = async (request, reply) => {
     } catch (error) {
         console.error("Erro ao atualizar:", error);
         return reply.status(500).send('<div class="p-4 bg-rose-500 text-white">Erro ao atualizar dados.</div>');
+    }
+    
+};
+exports.adicionarNotaDiario = async (request, reply) => {
+    try {
+        const id_beneficiario = parseInt(request.params.id);
+        const { anotacao } = request.body;
+
+        if (!anotacao || anotacao.trim() === '') {
+            return reply.status(400).send(''); // Não salva se estiver vazio
+        }
+
+        // Insere no banco de dados
+        const stmt = db.prepare('INSERT INTO diario_bordo (beneficiario_id, anotacao) VALUES (?, ?)');
+        stmt.run(id_beneficiario, anotacao.trim());
+
+        // Pega a data de agora para mostrar na tela
+        const dataReg = new Date().toLocaleString('pt-BR');
+
+        // Retorna APENAS o HTML da nova nota! O HTMX vai injetar isso no topo da lista
+        const novaNotaHtml = `
+            <div class="bg-indigo-100 p-3 rounded-lg border border-indigo-200 shadow-sm animate-pulse-once">
+                <p class="text-[10px] font-bold text-indigo-500 mb-1"><i class="ph ph-clock"></i> ${dataReg} (Agora)</p>
+                <p class="text-sm text-slate-800 font-semibold">${anotacao.trim()}</p>
+            </div>
+        `;
+
+        // Isso remove aquela mensagem "Nenhuma anotação registrada ainda" se for a primeira nota
+        return reply.type('text/html').send(novaNotaHtml + `
+            <style>#sem-notas { display: none; }</style>
+        `);
+
+    } catch (error) {
+        console.error("Erro ao salvar nota no diário:", error);
+        return reply.status(500).send('<p class="text-rose-500 text-sm">Erro ao salvar anotação.</p>');
     }
 };

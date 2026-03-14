@@ -14,5 +14,8 @@
     "better-sqlite3": "^12.6.2",
     "fastify": "^5.8.2",
     "htmx.org": "^2.0.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

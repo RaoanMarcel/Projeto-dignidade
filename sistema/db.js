@@ -34,6 +34,16 @@ db.exec(`
   )
 `);
 
+db.exec(`
+    CREATE TABLE IF NOT EXISTS diario_bordo (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        beneficiario_id INTEGER NOT NULL,
+        data_registro TEXT DEFAULT (datetime('now', 'localtime')),
+        anotacao TEXT NOT NULL,
+        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
+    )
+`);
+
 console.log("✅ Banco de dados SQLite inicializado com sucesso!");
 
 module.exports = db;

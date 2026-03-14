@@ -1,6 +1,7 @@
 // server.js
 const fastify = require('fastify')({ logger: false });
 const path = require('path');
+const buscaController = require('./controllers/busca.controller.js');
 const fs = require('fs');
 
 fastify.register(require('@fastify/formbody'));
@@ -19,6 +20,7 @@ fastify.get('/', async (request, reply) => {
 // Registra os módulos (Atenção aos caminhos)
 fastify.register(require('./routes/cadastro.routes'));
 fastify.register(require('./routes/busca.routes'));
+fastify.post('/diario/:id', buscaController.adicionarNotaDiario);
 
 const start = async () => {
     try {
