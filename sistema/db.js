@@ -4,6 +4,7 @@ const path = require('path');
 const dbPath = path.resolve(__dirname, 'dignidade.db');
 const db = new Database(dbPath, { verbose: console.log });
 
+// 1. Cria a tabela com as novas colunas (caso o banco seja apagado e recriado do zero)
 db.exec(`
   CREATE TABLE IF NOT EXISTS beneficiarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,6 +31,8 @@ db.exec(`
     telefone TEXT,
     aptidoes TEXT,
     autorizacao_imagem INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'Acolhido', 
+    observacoes TEXT,
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
@@ -43,6 +46,23 @@ db.exec(`
         FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
     )
 `);
+
+// 2. ATUALIZA O BANCO EXISTENTE (Evita que você perca dados)
+// Tenta adicionar a coluna 'status'. Se já existir, o try/catch engole o erro e o sistema não trava.
+try {
+    db.exec("ALTER TABLE beneficiarios ADD COLUMN status TEXT DEFAULT 'Acolhido'");
+    console.log("✅ Coluna 'status' adicionada ao banco de dados!");
+} catch (err) {
+    // Ignora silenciosamente, a coluna já existe
+}
+
+// Tenta adicionar a coluna 'observacoes'.
+try {
+    db.exec("ALTER TABLE beneficiarios ADD COLUMN observacoes TEXT");
+    console.log("✅ Coluna 'observacoes' adicionada ao banco de dados!");
+} catch (err) {
+    // Ignora silenciosamente, a coluna já existe
+}
 
 console.log("✅ Banco de dados SQLite inicializado com sucesso!");
 
