@@ -1,7 +1,63 @@
-const db = require('./db'); // Ajuste o caminho para o seu db.js se necessário
+const db = require('../db.js');
 
-// 1. TELA PRINCIPAL (Esqueleto UI)
+// 🛠️ FUNÇÃO AUXILIAR: Monta o HTML da lista para podermos usar na tela inicial e na busca
+function gerarHtmlLista(busca = '%%', categoria = '') {
+    let sql = `SELECT * FROM estoque_itens WHERE nome LIKE ?`;
+    let params = [busca];
+
+    if (categoria) {
+        sql += ` AND categoria = ?`;
+        params.push(categoria);
+    }
+    sql += ` ORDER BY nome ASC`;
+
+    const itens = db.prepare(sql).all(...params);
+
+    if (itens.length === 0) {
+        return `
+            <div class="p-8 text-center bg-white rounded-2xl border border-slate-200 shadow-sm mt-4">
+                <i class="ph ph-package text-5xl text-slate-300 mb-3 block"></i>
+                <h3 class="text-lg font-bold text-slate-700">Nenhum item encontrado</h3>
+                <p class="text-slate-500">Tente buscar por outro termo ou adicione um novo produto abaixo.</p>
+            </div>
+        `;
+    }
+
+    return itens.map(item => {
+        const isZerado = item.quantidade_atual === 0;
+        const corCard = isZerado ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white hover:border-indigo-300';
+        const corQtd = isZerado ? 'text-rose-600 bg-rose-100' : 'text-indigo-700 bg-indigo-50';
+
+        return `
+            <div hx-get="/almoxarifado/item/${item.id}" hx-target="#modal-container" 
+                 class="flex items-center justify-between p-4 rounded-xl border ${corCard} shadow-sm transition-all cursor-pointer group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full ${isZerado ? 'bg-rose-100 text-rose-500' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600'} flex items-center justify-center text-2xl transition-colors">
+                        <i class="ph ph-package"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-slate-800 text-lg flex items-center gap-2">
+                            ${item.nome}
+                            ${item.tamanho ? `<span class="bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold uppercase">${item.tamanho}</span>` : ''}
+                        </h4>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">${item.categoria}</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Disponível</span>
+                    <div class="px-4 py-1.5 rounded-lg ${corQtd} font-black text-lg min-w-[60px] text-center">
+                        ${item.quantidade_atual}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 1. TELA PRINCIPAL (Agora pré-carrega a lista)
 exports.renderizarTelaPrincipal = (request, reply) => {
+    const listaInicialHtml = gerarHtmlLista(); // Carrega os itens do banco imediatamente
+
     const html = `
         <div class="flex flex-col h-[calc(100vh-4rem)] bg-slate-50 relative animate-fade-in">
             <div class="bg-white p-5 border-b border-slate-200 shadow-sm shrink-0 z-10 flex gap-4 items-center">
@@ -22,12 +78,15 @@ exports.renderizarTelaPrincipal = (request, reply) => {
                 </select>
             </div>
 
-            <div id="lista-almoxarifado" class="flex-1 overflow-y-auto p-6 flex flex-col gap-3" hx-get="/almoxarifado/lista" hx-trigger="load">
-                <div class="text-center text-slate-400 mt-10"><i class="ph ph-spinner animate-spin text-3xl"></i></div>
+            <div id="lista-almoxarifado" class="flex-1 overflow-y-auto p-6 flex flex-col gap-3" 
+                 hx-get="/almoxarifado/lista" 
+                 hx-trigger="atualizaLista from:body" 
+                 hx-include="[name='busca'], [name='categoria']">
+                ${listaInicialHtml}
             </div>
 
             <div class="bg-indigo-50 p-5 border-t border-indigo-100 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                <form hx-post="/almoxarifado/entrada" hx-target="#lista-almoxarifado" class="flex gap-3 items-end max-w-6xl mx-auto" onsubmit="this.reset()">
+                <form hx-post="/almoxarifado/entrada" hx-swap="none" hx-on::after-request="if(event.detail.successful) this.reset()" class="flex gap-3 items-end max-w-6xl mx-auto">
                     <div class="flex-1">
                         <label class="block text-xs font-bold text-indigo-800 uppercase tracking-wider mb-1.5">Adicionar / Criar Produto</label>
                         <input type="text" name="nome" placeholder="Nome do Produto..." class="w-full p-3 rounded-xl border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 font-bold" required>
@@ -59,98 +118,48 @@ exports.renderizarTelaPrincipal = (request, reply) => {
     return reply.type('text/html').send(html);
 };
 
-// 2. LISTA DE ITENS (Filtragem e Busca)
+// 2. LISTA DE ITENS (Filtragem e Busca via HTMX)
 exports.listarItens = (request, reply) => {
     const busca = request.query.busca ? `%${request.query.busca}%` : '%%';
     const categoria = request.query.categoria || '';
-
-    let sql = `SELECT * FROM estoque_itens WHERE nome LIKE ?`;
-    let params = [busca];
-
-    if (categoria) {
-        sql += ` AND categoria = ?`;
-        params.push(categoria);
-    }
-    sql += ` ORDER BY nome ASC`;
-
-    const itens = db.prepare(sql).all(...params);
-
-    if (itens.length === 0) {
-        return reply.type('text/html').send(`
-            <div class="p-8 text-center bg-white rounded-2xl border border-slate-200 shadow-sm mt-4">
-                <i class="ph ph-package text-5xl text-slate-300 mb-3 block"></i>
-                <h3 class="text-lg font-bold text-slate-700">Nenhum item encontrado</h3>
-                <p class="text-slate-500">Tente buscar por outro termo ou adicione um novo produto abaixo.</p>
-            </div>
-        `);
-    }
-
-    const html = itens.map(item => {
-        const isZerado = item.quantidade_atual === 0;
-        const corCard = isZerado ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white hover:border-indigo-300';
-        const corQtd = isZerado ? 'text-rose-600 bg-rose-100' : 'text-indigo-700 bg-indigo-50';
-
-        return `
-            <div hx-get="/almoxarifado/item/${item.id}" hx-target="#modal-container" 
-                 class="flex items-center justify-between p-4 rounded-xl border ${corCard} shadow-sm transition-all cursor-pointer group">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full ${isZerado ? 'bg-rose-100 text-rose-500' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600'} flex items-center justify-center text-2xl transition-colors">
-                        <i class="ph ph-package"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-black text-slate-800 text-lg flex items-center gap-2">
-                            ${item.nome}
-                            ${item.tamanho ? `<span class="bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold uppercase">${item.tamanho}</span>` : ''}
-                        </h4>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">${item.categoria}</p>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Disponível</span>
-                    <div class="px-4 py-1.5 rounded-lg ${corQtd} font-black text-lg min-w-[60px] text-center">
-                        ${item.quantidade_atual}
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-
+    const html = gerarHtmlLista(busca, categoria);
     return reply.type('text/html').send(html);
 };
 
-// 3. ADICIONAR ENTRADA (Nova ou Estoque Existente)
+// 3. ADICIONAR ENTRADA 
 exports.adicionarEntrada = (request, reply) => {
-    const { nome, categoria, tamanho, quantidade } = request.body;
-    const qtd = parseInt(quantidade);
-    const tam = tamanho || '';
+    try {
+        const { nome, categoria, tamanho, quantidade } = request.body;
+        const qtd = parseInt(quantidade);
+        const tam = tamanho || '';
 
-    // Verifica se já existe um item com mesmo nome, categoria e tamanho
-    const itemExistente = db.prepare(`SELECT id FROM estoque_itens WHERE LOWER(nome) = LOWER(?) AND categoria = ? AND tamanho = ?`).get(nome, categoria, tam);
+        console.log(`📥 Salvando no banco: ${qtd}x ${nome} (${categoria}) - Tamanho: ${tam}`); // ← LOG PARA ACOMPANHARMOS
 
-    let itemId;
+        const itemExistente = db.prepare(`SELECT id FROM estoque_itens WHERE LOWER(nome) = LOWER(?) AND categoria = ? AND tamanho = ?`).get(nome, categoria, tam);
+        let itemId;
 
-    if (itemExistente) {
-        // Atualiza quantidade
-        db.prepare(`UPDATE estoque_itens SET quantidade_atual = quantidade_atual + ? WHERE id = ?`).run(qtd, itemExistente.id);
-        itemId = itemExistente.id;
-    } else {
-        // Cria novo
-        const info = db.prepare(`INSERT INTO estoque_itens (nome, categoria, tamanho, quantidade_atual) VALUES (?, ?, ?, ?)`).run(nome, categoria, tam, qtd);
-        itemId = info.lastInsertRowid;
+        if (itemExistente) {
+            db.prepare(`UPDATE estoque_itens SET quantidade_atual = quantidade_atual + ? WHERE id = ?`).run(qtd, itemExistente.id);
+            itemId = itemExistente.id;
+        } else {
+            const info = db.prepare(`INSERT INTO estoque_itens (nome, categoria, tamanho, quantidade_atual) VALUES (?, ?, ?, ?)`).run(nome, categoria, tam, qtd);
+            itemId = info.lastInsertRowid;
+        }
+
+        db.prepare(`INSERT INTO estoque_movimentacoes (item_id, tipo, quantidade, observacao) VALUES (?, 'ENTRADA', ?, 'Entrada manual')`).run(itemId, qtd);
+
+        reply.header('HX-Trigger', 'atualizaLista');
+        return reply.send(''); 
+    } catch (error) {
+        console.error("❌ Erro ao salvar item:", error);
+        return reply.status(500).send('Erro interno ao salvar o item.');
     }
-
-    // Registra o histórico da movimentação (Entrada)
-    db.prepare(`INSERT INTO estoque_movimentacoes (item_id, tipo, quantidade, observacao) VALUES (?, 'ENTRADA', ?, 'Doação / Compra')`).run(itemId, qtd);
-
-    // Retorna a lista atualizada para a tela
-    return exports.listarItens({ query: {} }, reply);
 };
 
-// 4. MODAL DO ITEM
+// 4. MODAL DO ITEM (Mantido igual)
 exports.modalItem = (request, reply) => {
     const id = request.params.id;
     const item = db.prepare('SELECT * FROM estoque_itens WHERE id = ?').get(id);
-    
     if (!item) return reply.send('');
 
     const html = `
@@ -190,7 +199,7 @@ exports.modalItem = (request, reply) => {
     return reply.type('text/html').send(html);
 };
 
-// 5. MODAL DE DISTRIBUIÇÃO JUSTA (Quem precisa mais?)
+// 5. MODAL DE DISTRIBUIÇÃO JUSTA (Mantido igual)
 exports.modalDistribuicao = (request, reply) => {
     const itemId = request.params.itemId;
     const item = db.prepare('SELECT nome, quantidade_atual FROM estoque_itens WHERE id = ?').get(itemId);
@@ -227,7 +236,7 @@ exports.modalDistribuicao = (request, reply) => {
                         <div class="mt-1">${statusTag}</div>
                     </div>
                 </div>
-                <button hx-post="/almoxarifado/entregar/${itemId}/${b.id}" hx-target="#lista-almoxarifado" hx-swap="outerHTML" onclick="document.getElementById('modal-container').innerHTML = ''"
+                <button hx-post="/almoxarifado/entregar/${itemId}/${b.id}" hx-swap="none" onclick="document.getElementById('modal-container').innerHTML = ''"
                         class="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-black uppercase rounded-lg transition-colors border border-indigo-100 shrink-0">
                     Entregar 1
                 </button>
@@ -238,7 +247,6 @@ exports.modalDistribuicao = (request, reply) => {
     const html = `
         <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onclick="document.getElementById('modal-container').innerHTML = ''">
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
-                
                 <div class="bg-indigo-600 p-5 flex justify-between items-center text-white shrink-0 shadow-md z-10">
                     <div>
                         <h3 class="font-black text-lg flex items-center gap-2"><i class="ph ph-hand-heart text-2xl"></i> Distribuir Produto</h3>
@@ -246,11 +254,6 @@ exports.modalDistribuicao = (request, reply) => {
                     </div>
                     <button onclick="document.getElementById('modal-container').innerHTML=''" class="hover:bg-indigo-500 p-2 rounded-full transition-colors"><i class="ph ph-x text-xl"></i></button>
                 </div>
-                
-                <div class="p-3 bg-amber-50 text-xs text-amber-800 font-bold shrink-0 border-b border-amber-100 flex items-center justify-center gap-2">
-                    <i class="ph ph-lightbulb text-amber-500 text-lg"></i> A lista prioriza quem nunca recebeu ou está há mais tempo sem.
-                </div>
-                
                 <div class="overflow-y-auto flex-1 p-2 bg-slate-50">
                     ${listaHtml}
                 </div>
@@ -260,32 +263,23 @@ exports.modalDistribuicao = (request, reply) => {
     return reply.type('text/html').send(html);
 };
 
-// 6. PROCESSAR ENTREGA
+// 6. PROCESSAR ENTREGA (Mantido igual)
 exports.registrarEntrega = (request, reply) => {
     const { itemId, beneficiarioId } = request.params;
 
-    // Inicia uma transação segura (para garantir que estoque e histórico batem)
     const transaction = db.transaction(() => {
-        // Verifica se ainda tem estoque
         const item = db.prepare('SELECT quantidade_atual FROM estoque_itens WHERE id = ?').get(itemId);
-        if (item.quantidade_atual <= 0) {
-            throw new Error("Estoque zerado no momento da entrega.");
-        }
-
-        // Desconta do estoque
+        if (item.quantidade_atual <= 0) throw new Error("Estoque zerado no momento da entrega.");
         db.prepare('UPDATE estoque_itens SET quantidade_atual = quantidade_atual - 1 WHERE id = ?').run(itemId);
-
-        // Registra a saída apontando para o beneficiário
         db.prepare(`INSERT INTO estoque_movimentacoes (item_id, beneficiario_id, tipo, quantidade, observacao) VALUES (?, ?, 'SAIDA', 1, 'Distribuição Direta')`).run(itemId, beneficiarioId);
     });
 
     try {
         transaction();
-        // Após o sucesso, disparamos a recarga da lista de itens lá no fundo para atualizar os números
-        // Retornamos a div com hx-get novamente para o HTMX recarregar a lista silenciosamente.
-        return exports.listarItens({ query: {} }, reply);
+        reply.header('HX-Trigger', 'atualizaLista');
+        return reply.send('');
     } catch (error) {
-        console.error(error);
+        console.error("❌ Erro ao entregar item:", error);
         return reply.status(500).send(`<div class="p-4 bg-rose-100 text-rose-700 rounded-xl m-4 font-bold border border-rose-200">Erro: ${error.message}</div>`);
     }
 };

@@ -17,9 +17,9 @@ fastify.get('/', async (request, reply) => {
     reply.type('text/html').send(html);
 });
 
-// Registra os módulos (Atenção aos caminhos)
 fastify.register(require('./routes/cadastro.routes'));
 fastify.register(require('./routes/busca.routes'));
+fastify.register(require('./routes/almoxarifado.routes'));
 fastify.post('/diario/:id', buscaController.adicionarNotaDiario);
 
 const start = async () => {
