@@ -1,16 +1,16 @@
 const db = require('../db.js');
 
 exports.gerarModalDistribuicao = (itemId) => {
-    // Buscamos mais informações (categoria, tamanho) para enriquecer o modal
     const item = db.prepare('SELECT id, nome, quantidade, categoria, tamanho FROM estoque_itens WHERE id = ?').get(itemId);
     
     if (!item || item.quantidade <= 0) {
         return `<div class="p-6 text-center text-rose-500 font-bold bg-white rounded-xl shadow-lg">Estoque esgotado para este item.</div>`;
     }
 
+    // 👇 Adicionei o 'b.apelido' na busca do SELECT
     const sql = `
         SELECT 
-            b.id, b.nome, b.foto,
+            b.id, b.nome, b.apelido, b.foto,
             ROUND(julianday('now', 'localtime') - julianday(MAX(m.data_registro))) AS dias_atras
         FROM beneficiarios b
         LEFT JOIN estoque_movimentacoes m ON b.id = m.beneficiario_id AND m.item_id = ? AND m.tipo = 'SAIDA'
@@ -33,9 +33,14 @@ exports.gerarModalDistribuicao = (itemId) => {
             statusTag = `<span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-slate-300 shadow-sm">Há ${Math.floor(b.dias_atras)} dias</span>`;
         }
 
-        // Agora o input é 'checkbox' e a div de check é quadrada (rounded-md)
+        // Variáveis seguras para a busca
+        const nomeBusca = (b.nome || '').toLowerCase();
+        const apelidoBusca = (b.apelido || '').toLowerCase();
+        const textoApelido = b.apelido ? `<span class="text-slate-500 font-normal text-sm ml-1">(${b.apelido})</span>` : '';
+
+        // Adicionamos a classe 'card-beneficiario' e os data-attributes para o filtro JS funcionar
         return `
-            <label class="block cursor-pointer relative mb-2.5 group">
+            <label class="block cursor-pointer relative mb-2.5 group card-beneficiario" data-nome="${nomeBusca}" data-apelido="${apelidoBusca}">
                 <input type="checkbox" name="beneficiario" value="${b.id}" onchange="toggleBeneficiario('${b.id}')" class="hidden checkbox-beneficiario">
                 
                 <div id="box-${b.id}" class="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-100 bg-white transition-all shadow-sm hover:border-indigo-300 hover:shadow-md">
@@ -44,7 +49,9 @@ exports.gerarModalDistribuicao = (itemId) => {
                             ${b.foto ? `<img src="${b.foto}" class="w-full h-full object-cover">` : `<i class="ph ph-user text-slate-400 text-2xl"></i>`}
                         </div>
                         <div>
-                            <p class="font-bold text-slate-800 text-[15px] leading-tight mb-1">${b.nome}</p>
+                            <p class="font-bold text-slate-800 text-[15px] leading-tight mb-1">
+                                ${b.nome} ${textoApelido}
+                            </p>
                             <div>${statusTag}</div>
                         </div>
                     </div>
@@ -76,14 +83,22 @@ exports.gerarModalDistribuicao = (itemId) => {
                 </div>
                 
                 <form hx-post="/almoxarifado/entregar/${item.id}" hx-swap="none" hx-confirm="Confirma a entrega para as pessoas selecionadas?" class="flex-1 overflow-hidden flex flex-col">
+                    
                     <div class="p-3 bg-indigo-50 text-xs text-indigo-800 font-bold shrink-0 border-b border-indigo-100 flex justify-between items-center shadow-inner">
-                        <span class="flex items-center gap-1"><i class="ph ph-users text-lg"></i> Selecione os beneficiários.</span>
+                        <span class="flex items-center gap-1"><i class="ph ph-users text-lg"></i> Selecione os beneficiários</span>
                         <span class="bg-white px-3 py-1.5 rounded-lg border border-indigo-200 shadow-sm">
                             Estoque disponível: <b class="text-indigo-600 text-base" id="estoque-disponivel" data-estoque="${item.quantidade}">${item.quantidade}</b>
                         </span>
                     </div>
 
-                    <div class="overflow-y-auto p-4 flex-1 bg-slate-50">
+                    <div class="p-3 bg-white border-b border-slate-200 shrink-0">
+                        <div class="relative">
+                            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                            <input type="text" id="input-busca" onkeyup="filtrarBeneficiarios()" placeholder="Buscar por nome ou apelido..." class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-400">
+                        </div>
+                    </div>
+
+                    <div class="overflow-y-auto p-4 flex-1 bg-slate-50" id="lista-beneficiarios">
                         ${listaHtml}
                     </div>
                     
@@ -98,7 +113,24 @@ exports.gerarModalDistribuicao = (itemId) => {
         </div>
 
         <script>
-            // Lógica para ligar e desligar individualmente cada pessoa selecionada
+            // Função de Filtro em tempo real
+            function filtrarBeneficiarios() {
+                const termo = document.getElementById('input-busca').value.toLowerCase();
+                const cards = document.querySelectorAll('.card-beneficiario');
+
+                cards.forEach(card => {
+                    const nome = card.getAttribute('data-nome');
+                    const apelido = card.getAttribute('data-apelido');
+
+                    // Se o termo digitado estiver no nome ou no apelido, mostra o card. Se não, esconde.
+                    if (nome.includes(termo) || apelido.includes(termo)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
             function toggleBeneficiario(id) {
                 const checkbox = document.querySelector('input[value="' + id + '"]');
                 const box = document.getElementById('box-' + id);
@@ -142,19 +174,15 @@ exports.gerarModalDistribuicao = (itemId) => {
 };
 
 exports.registrarEntregaNoBanco = (itemId, beneficiariosIds) => {
-    // Agora aceitamos um Array de beneficiarios
     const transaction = db.transaction((idItem, ids) => {
         const item = db.prepare('SELECT quantidade FROM estoque_itens WHERE id = ?').get(idItem);
         
-        // Validação de segurança dupla
         if (item.quantidade < ids.length) {
             throw new Error(`Estoque insuficiente. Você tentou entregar ${ids.length} itens, mas só há ${item.quantidade} no estoque.`);
         }
 
-        // Subtrai do estoque a quantidade exata de pessoas selecionadas
         db.prepare('UPDATE estoque_itens SET quantidade = quantidade - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(ids.length, idItem);
 
-        // Registra uma movimentação de saída para CADA pessoa selecionada
         const stmtMovimentacao = db.prepare(`INSERT INTO estoque_movimentacoes (item_id, beneficiario_id, tipo, quantidade, observacao) VALUES (?, ?, 'SAIDA', 1, 'Distribuição')`);
         
         for (const idBen of ids) {
