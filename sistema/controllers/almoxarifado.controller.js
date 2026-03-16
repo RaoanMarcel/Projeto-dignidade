@@ -1,4 +1,5 @@
 const db = require('../db.js');
+const distribuicaoService = require('../services/distribuicao.service.js');
 
 // 🛠️ FUNÇÃO AUXILIAR: Monta o HTML da lista
 function gerarHtmlLista(busca = '%%', categoria = '') {
@@ -141,6 +142,8 @@ exports.renderizarTelaPrincipal = (request, reply) => {
 
                 </form>
             </div>
+            
+            <div id="modal-container"></div>
         </div>
     `;
     return reply.type('text/html').send(html);
@@ -176,7 +179,6 @@ exports.adicionarEntrada = (request, reply) => {
 
         db.prepare(`INSERT INTO estoque_movimentacoes (item_id, tipo, quantidade, observacao) VALUES (?, 'ENTRADA', ?, 'Entrada manual')`).run(itemId, qtd);
 
-        // O backend envia o comando pra atualizar a lista
         reply.header('HX-Trigger', 'atualizaLista');
         return reply.send(''); 
     } catch (error) {
@@ -214,106 +216,52 @@ exports.modalItem = (request, reply) => {
                     <span class="text-6xl font-black ${item.quantidade > 0 ? 'text-emerald-500' : 'text-rose-500'} drop-shadow-sm">${item.quantidade}</span>
                 </div>
 
-                <div class="p-6 border-t border-slate-100">
-                    ${item.quantidade > 0 
-                        ? `<button hx-get="/almoxarifado/distribuir/${item.id}" hx-target="#modal-container" hx-swap="innerHTML" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-wider rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2">
-                                <i class="ph ph-share-network text-xl"></i> Distribuir Produto
-                           </button>` 
-                        : `<div class="w-full py-4 bg-rose-100 text-rose-500 font-black uppercase tracking-wider rounded-xl text-center flex items-center justify-center gap-2">
-                                <i class="ph ph-warning text-xl"></i> Estoque Esgotado
-                           </div>`
-                    }
-                </div>
+                    <div class="p-6 border-t border-slate-100">
+                        ${item.quantidade > 0 
+                            ? `<button hx-get="/almoxarifado/distribuir/${item.id}" 
+                                       hx-target="#modal-container" 
+                                       hx-trigger="click"
+                                       class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-wider rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2">
+                                    <i class="ph ph-hand-heart text-xl"></i> Distribuir Item
+                               </button>` 
+                            : `<div class="w-full py-4 bg-rose-100 text-rose-500 font-black uppercase tracking-wider rounded-xl text-center flex items-center justify-center gap-2">
+                                    <i class="ph ph-warning text-xl"></i> Estoque Esgotado
+                               </div>`
+                        }
+                    </div>
             </div>
         </div>
     `;
     return reply.type('text/html').send(html);
 };
 
-// 5. MODAL DE DISTRIBUIÇÃO JUSTA 
+// 5. MODAL DE DISTRIBUIÇÃO SIMPLES
 exports.modalDistribuicao = (request, reply) => {
-    const itemId = request.params.itemId;
-    const item = db.prepare('SELECT nome, quantidade FROM estoque_itens WHERE id = ?').get(itemId);
-
-    const sql = `
-        SELECT 
-            b.id, b.nome, b.foto,
-            MAX(m.data_registro) as ultima_data,
-            CAST(julianday('now', 'localtime') - julianday(MAX(m.data_registro))) AS dias_atras
-        FROM beneficiarios b
-        LEFT JOIN estoque_movimentacoes m ON b.id = m.beneficiario_id AND m.item_id = ? AND m.tipo = 'SAIDA'
-        WHERE b.status = 'Acolhido'
-        GROUP BY b.id
-        ORDER BY dias_atras IS NOT NULL, dias_atras DESC, b.nome ASC
-    `;
-
-    const beneficiarios = db.prepare(sql).all(itemId);
-
-    let listaHtml = beneficiarios.map(b => {
-        let statusTag = '';
-        if (b.dias_atras === null) statusTag = `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Nunca recebeu</span>`;
-        else if (b.dias_atras === 0) statusTag = `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Recebeu Hoje</span>`;
-        else if (b.dias_atras < 7) statusTag = `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Há ${Math.floor(b.dias_atras)} dias</span>`;
-        else statusTag = `<span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Há ${Math.floor(b.dias_atras)} dias</span>`;
-
-        return `
-            <div class="flex items-center justify-between p-3 border-b border-slate-100 hover:bg-white transition-colors">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-300">
-                        ${b.foto ? `<img src="${b.foto}" class="w-full h-full object-cover">` : `<i class="ph ph-user text-slate-400 text-xl flex items-center justify-center h-full"></i>`}
-                    </div>
-                    <div>
-                        <p class="font-bold text-slate-800 text-sm leading-tight">${b.nome}</p>
-                        <div class="mt-1">${statusTag}</div>
-                    </div>
-                </div>
-                <button hx-post="/almoxarifado/entregar/${itemId}/${b.id}" hx-swap="none" onclick="document.getElementById('modal-container').innerHTML = ''"
-                        class="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-black uppercase rounded-lg transition-colors border border-indigo-100 shrink-0">
-                    Entregar 1
-                </button>
-            </div>
-        `;
-    }).join('');
-
-    const html = `
-        <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onclick="document.getElementById('modal-container').innerHTML = ''">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
-                <div class="bg-indigo-600 p-5 flex justify-between items-center text-white shrink-0 shadow-md z-10">
-                    <div>
-                        <h3 class="font-black text-lg flex items-center gap-2"><i class="ph ph-hand-heart text-2xl"></i> Distribuir Produto</h3>
-                        <p class="text-indigo-200 text-sm font-medium mt-0.5">Item: <b>${item.nome}</b> (${item.quantidade} disponíveis)</p>
-                    </div>
-                    <button onclick="document.getElementById('modal-container').innerHTML=''" class="hover:bg-indigo-500 p-2 rounded-full transition-colors"><i class="ph ph-x text-xl"></i></button>
-                </div>
-                <div class="p-3 bg-amber-50 text-xs text-amber-800 font-bold shrink-0 border-b border-amber-100 flex items-center justify-center gap-2">
-                    <i class="ph ph-lightbulb text-amber-500 text-lg"></i> A lista prioriza quem nunca recebeu ou está há mais tempo sem.
-                </div>
-                <div class="overflow-y-auto flex-1 p-2 bg-slate-50">
-                    ${listaHtml}
-                </div>
-            </div>
-        </div>
-    `;
+    const html = distribuicaoService.gerarModalDistribuicao(request.params.itemId);
     return reply.type('text/html').send(html);
 };
 
-// 6. PROCESSAR ENTREGA 
 exports.registrarEntrega = (request, reply) => {
-    const { itemId, beneficiarioId } = request.params;
-
-    const transaction = db.transaction(() => {
-        const item = db.prepare('SELECT quantidade FROM estoque_itens WHERE id = ?').get(itemId);
-        if (item.quantidade <= 0) throw new Error("Estoque zerado no momento da entrega.");
-        db.prepare('UPDATE estoque_itens SET quantidade = quantidade - 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(itemId);
-        db.prepare(`INSERT INTO estoque_movimentacoes (item_id, beneficiario_id, tipo, quantidade, observacao) VALUES (?, ?, 'SAIDA', 1, 'Distribuição Direta')`).run(itemId, beneficiarioId);
-    });
-
     try {
-        transaction();
+        const { itemId } = request.params;
+        const { beneficiario } = request.body; 
+        
+        if (!beneficiario) {
+            throw new Error("Nenhum beneficiário foi selecionado.");
+        }
+
+        // Se veio apenas 1 pessoa, o Fastify manda como string. Se vierem várias, manda como Array.
+        // Essa linha garante que sempre teremos um Array para o nosso banco de dados processar.
+        const beneficiariosArray = Array.isArray(beneficiario) ? beneficiario : [beneficiario];
+
+        distribuicaoService.registrarEntregaNoBanco(itemId, beneficiariosArray);
+
+        // Dispara o gatilho para atualizar a lista no fundo e fecha o modal
         reply.header('HX-Trigger', 'atualizaLista');
         return reply.send('');
+
     } catch (error) {
-        console.error("❌ Erro ao entregar item:", error);
-        return reply.status(500).send(`<div class="p-4 bg-rose-100 text-rose-700 rounded-xl m-4 font-bold border border-rose-200">Erro: ${error.message}</div>`);
+        console.error("❌ Erro ao distribuir:", error);
+        return reply.status(500).send(`<script>alert("Erro: ${error.message}"); document.getElementById('modal-container').innerHTML = '';</script>`);
     }
 };

@@ -4,7 +4,11 @@ const path = require('path');
 const dbPath = path.resolve(__dirname, 'dignidade.db');
 const db = new Database(dbPath, { verbose: console.log });
 
-// 1. Cria a tabela com as novas colunas (caso o banco seja apagado e recriado do zero)
+// 🔥 ATIVAÇÃO DE CHAVES ESTRANGEIRAS
+// Isso garante que os relacionamentos entre tabelas sejam respeitados pelo SQLite
+db.pragma('foreign_keys = ON');
+
+// 1. TABELA DE BENEFICIÁRIOS
 db.exec(`
   CREATE TABLE IF NOT EXISTS beneficiarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,15 +41,18 @@ db.exec(`
   )
 `);
 
+// 2. TABELA DO DIÁRIO DE BORDO
 db.exec(`
     CREATE TABLE IF NOT EXISTS diario_bordo (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         beneficiario_id INTEGER NOT NULL,
         data_registro TEXT DEFAULT (datetime('now', 'localtime')),
         anotacao TEXT NOT NULL,
-        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
+        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id) ON DELETE CASCADE
     )
 `);
+
+// 3. TABELA DE ESTOQUE - ITENS
 db.exec(`
     CREATE TABLE IF NOT EXISTS estoque_itens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,6 +68,7 @@ db.exec(`
     );
 `);
 
+// 4. TABELA DE ESTOQUE - MOVIMENTAÇÕES
 db.exec(`
     CREATE TABLE IF NOT EXISTS estoque_movimentacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,17 +78,21 @@ db.exec(`
         data_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
         beneficiario_id INTEGER, -- Se for saída, para quem foi entregue?
         observacao TEXT,
-        FOREIGN KEY (item_id) REFERENCES estoque_itens(id),
-        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
+        FOREIGN KEY (item_id) REFERENCES estoque_itens(id) ON DELETE CASCADE,
+        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id) ON DELETE SET NULL
     )
 `);
 
+// 🛠️ MIGRATIONS (Atualizações para bancos já existentes)
+// Tenta adicionar a coluna 'status'. Se já existir, segue o jogo.
 try {
     db.exec("ALTER TABLE beneficiarios ADD COLUMN status TEXT DEFAULT 'Acolhido'");
     console.log("✅ Coluna 'status' adicionada ao banco de dados!");
 } catch (err) {
+    // Ignora silenciosamente, a coluna já existe
 }
 
+// Tenta adicionar a coluna 'observacoes'. Se já existir, segue o jogo.
 try {
     db.exec("ALTER TABLE beneficiarios ADD COLUMN observacoes TEXT");
     console.log("✅ Coluna 'observacoes' adicionada ao banco de dados!");
@@ -88,6 +100,6 @@ try {
     // Ignora silenciosamente, a coluna já existe
 }
 
-console.log("✅ Banco de dados SQLite inicializado com sucesso!");
+console.log("✅ Banco de dados SQLite inicializado e estruturado com sucesso!");
 
 module.exports = db;
