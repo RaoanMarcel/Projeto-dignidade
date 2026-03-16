@@ -46,17 +46,37 @@ db.exec(`
         FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
     )
 `);
+db.exec(`
+    CREATE TABLE IF NOT EXISTS estoque_itens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        categoria TEXT, -- Ex: Higiene, Vestuário, Cama/Banho, Outros
+        tamanho TEXT, -- Ex: M, G, 40 (Deixe vazio para itens sem tamanho, como Sabonete)
+        quantidade_atual INTEGER DEFAULT 0,
+        unidade_medida TEXT DEFAULT 'Unidade' -- Ex: Par, Kit, Unidade
+    )
+`);
 
-// 2. ATUALIZA O BANCO EXISTENTE (Evita que você perca dados)
-// Tenta adicionar a coluna 'status'. Se já existir, o try/catch engole o erro e o sistema não trava.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS estoque_movimentacoes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        tipo TEXT NOT NULL, -- Vai ser 'ENTRADA' ou 'SAIDA'
+        quantidade INTEGER NOT NULL,
+        data_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+        beneficiario_id INTEGER, -- Se for saída, para quem foi entregue?
+        observacao TEXT,
+        FOREIGN KEY (item_id) REFERENCES estoque_itens(id),
+        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
+    )
+`);
+
 try {
     db.exec("ALTER TABLE beneficiarios ADD COLUMN status TEXT DEFAULT 'Acolhido'");
     console.log("✅ Coluna 'status' adicionada ao banco de dados!");
 } catch (err) {
-    // Ignora silenciosamente, a coluna já existe
 }
 
-// Tenta adicionar a coluna 'observacoes'.
 try {
     db.exec("ALTER TABLE beneficiarios ADD COLUMN observacoes TEXT");
     console.log("✅ Coluna 'observacoes' adicionada ao banco de dados!");
