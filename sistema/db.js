@@ -50,11 +50,15 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS estoque_itens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
-        categoria TEXT, -- Ex: Higiene, Vestuário, Cama/Banho, Outros
-        tamanho TEXT, -- Ex: M, G, 40 (Deixe vazio para itens sem tamanho, como Sabonete)
-        quantidade_atual INTEGER DEFAULT 0,
-        unidade_medida TEXT DEFAULT 'Unidade' -- Ex: Par, Kit, Unidade
-    )
+        descricao TEXT,
+        categoria TEXT NOT NULL,
+        quantidade INTEGER NOT NULL DEFAULT 0,
+        condicao TEXT,
+        tamanho TEXT,
+        status TEXT DEFAULT 'Disponível',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
 `);
 
 db.exec(`
