@@ -83,6 +83,16 @@ db.exec(`
     )
 `);
 
+db.exec(`
+    CREATE TABLE IF NOT EXISTS presencas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    beneficiario_id INTEGER NOT NULL,
+    data_entrada DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_saida DATETIME,
+    status TEXT DEFAULT 'ATIVA', -- Pode ser 'ATIVA', 'FINALIZADA' ou 'SAIDA_NAO_REGISTRADA'
+    FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
+);`);
+
 // 🛠️ MIGRATIONS (Atualizações para bancos já existentes)
 // Tenta adicionar a coluna 'status'. Se já existir, segue o jogo.
 try {
