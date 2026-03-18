@@ -21,14 +21,14 @@ exports.buscarPessoas = async (request, reply) => {
         let pessoas = [];
         
         if (termo && termo.trim().length > 0) {
-            pessoas = beneficiarioService.buscar(termo); 
+            pessoas = beneficiarioService.buscarPorTermo(termo); 
         }
         
         const html = presencaView.renderListaBusca(pessoas);
         return reply.type('text/html').send(html);
     } catch (err) {
         console.error("Erro na busca da portaria:", err);
-        return reply.send("Erro ao buscar.");
+        return reply.type('text/html').send(`<div class="w-full text-center p-4 text-rose-500 font-medium">Erro ao buscar pessoas.</div>`);
     }
 };
 
