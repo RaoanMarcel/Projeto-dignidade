@@ -1,6 +1,7 @@
 const presencaService = require('../services/presenca.service');
 const beneficiarioService = require('../services/beneficiario.service'); 
 const presencaView = require('../public/views/presenca.view');
+const xlsx = require('xlsx');
 
 exports.abrirPortaria = async (request, reply) => {
     try {
@@ -63,5 +64,62 @@ exports.registrarSaida = async (request, reply) => {
     } catch (err) {
         console.error("Erro ao registrar saída:", err);
         return reply.status(500).send("Erro ao dar baixa.");
+    }
+};
+
+exports.abrirHistorico = async (request, reply) => {
+    try {
+        const hoje = new Date().toISOString().split('T')[0]; 
+        
+        const historico = presencaService.obterHistoricoPorData(hoje);
+        const tabelaHtml = presencaView.renderTabelaHistorico(historico);
+        const html = presencaView.renderTelaHistorico(hoje, tabelaHtml);
+        
+        return reply.type('text/html').send(html);
+    } catch (err) {
+        console.error("Erro ao abrir histórico:", err);
+        return reply.status(500).send("Erro ao carregar histórico.");
+    }
+};
+
+exports.filtrarHistorico = async (request, reply) => {
+    try {
+        const data = request.body.data_filtro;
+        const historico = presencaService.obterHistoricoPorData(data);
+        const html = presencaView.renderTabelaHistorico(historico);
+        
+        return reply.type('text/html').send(html);
+    } catch (err) {
+        console.error("Erro ao filtrar histórico:", err);
+        return reply.send("<tr><td colspan='4' class='text-center p-4 text-rose-500'>Erro ao buscar dados.</td></tr>");
+    }
+};
+
+exports.exportarExcel = async (request, reply) => {
+    try {
+        const data = request.query.data;
+        const historico = presencaService.obterHistoricoPorData(data);
+
+        const dadosPlanilha = historico.map(h => ({
+            'Nome do Acolhido': h.nome,
+            'Documento': h.documento || 'Não informado',
+            'Data/Hora Entrada': new Date(h.data_entrada).toLocaleString('pt-BR'),
+            'Data/Hora Saída': h.data_saida ? new Date(h.data_saida).toLocaleString('pt-BR') : 'Ainda na casa',
+            'Status': h.status === 'ATIVA' ? 'Presente' : 'Baixa'
+        }));
+
+        const worksheet = xlsx.utils.json_to_sheet(dadosPlanilha);
+        const workbook = xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(workbook, worksheet, "Presenças");
+
+        const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+        reply.header('Content-Disposition', `attachment; filename="Lista_Presencas_${data}.xlsx"`);
+        reply.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        
+        return reply.send(buffer);
+    } catch (err) {
+        console.error("Erro ao exportar Excel:", err);
+        return reply.status(500).send("Erro ao gerar arquivo Excel.");
     }
 };

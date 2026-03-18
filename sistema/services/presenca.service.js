@@ -5,7 +5,6 @@ exports.registrarEntrada = (beneficiariosIds) => {
     
     const transaction = db.transaction((ids) => {
         for (const id of ids) {
-            // Verifica se a pessoa já não está "ATIVA" na casa para não duplicar
             const jaEstaNaCasa = db.prepare(`SELECT id FROM presencas WHERE beneficiario_id = ? AND status = 'ATIVA'`).get(id);
             if (!jaEstaNaCasa) {
                 stmt.run(id);
@@ -16,7 +15,6 @@ exports.registrarEntrada = (beneficiariosIds) => {
     transaction(beneficiariosIds);
 };
 
-// 2. Registra a saída (Check-out) de uma pessoa específica
 exports.registrarSaida = (presencaId) => {
     const stmt = db.prepare(`
         UPDATE presencas 
@@ -26,7 +24,6 @@ exports.registrarSaida = (presencaId) => {
     stmt.run(presencaId);
 };
 
-// 3. Busca todo mundo que está atualmente com status 'ATIVA'
 exports.listarAtivosNaCasa = () => {
     const stmt = db.prepare(`
         SELECT p.id as presenca_id, p.data_entrada, b.nome, b.apelido, b.id as beneficiario_id
@@ -36,4 +33,15 @@ exports.listarAtivosNaCasa = () => {
         ORDER BY p.data_entrada DESC
     `);
     return stmt.all();
+};
+
+exports.obterHistoricoPorData = (data) => {
+    const stmt = db.prepare(`
+        SELECT p.id, p.data_entrada, p.data_saida, p.status, b.nome, b.documento
+        FROM presencas p
+        JOIN beneficiarios b ON p.beneficiario_id = b.id
+        WHERE date(p.data_entrada) = ?
+        ORDER BY p.data_entrada DESC
+    `);
+    return stmt.all(data);
 };
