@@ -1,8 +1,7 @@
 const presencaService = require('../services/presenca.service');
 const beneficiarioService = require('../services/beneficiario.service'); 
-const presencaView = require('../views/presenca.view');
+const presencaView = require('../public/views/presenca.view');
 
-// Abre a tela principal da portaria
 exports.abrirPortaria = async (request, reply) => {
     try {
         const ativos = presencaService.listarAtivosNaCasa();

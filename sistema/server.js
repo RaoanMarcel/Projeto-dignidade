@@ -1,4 +1,3 @@
-// server.js
 const fastify = require('fastify')({ logger: false });
 const path = require('path');
 const buscaController = require('./controllers/busca.controller.js');
@@ -10,7 +9,6 @@ fastify.register(require('@fastify/static'), {
     prefix: '/',
 });
 
-// Rota Raiz: Carrega o nosso Hub (Dashboard Principal)
 fastify.get('/', async (request, reply) => {
     const filePath = path.join(__dirname, 'public/views/index.html');
     const html = fs.readFileSync(filePath, 'utf8');
@@ -20,6 +18,8 @@ fastify.get('/', async (request, reply) => {
 fastify.register(require('./routes/cadastro.routes'));
 fastify.register(require('./routes/busca.routes'));
 fastify.register(require('./routes/almoxarifado.routes'));
+fastify.register(require('./routes/presenca.routes')); 
+
 fastify.post('/diario/:id', buscaController.adicionarNotaDiario);
 
 const start = async () => {
