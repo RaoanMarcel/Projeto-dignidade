@@ -51,3 +51,19 @@ exports.adicionarNota = (beneficiarioId, anotacao) => {
     
     return db.prepare('SELECT * FROM diario_bordo WHERE id = ?').get(result.lastInsertRowid);
 };
+
+exports.obterHistoricoDoacoes = (beneficiarioId) => {
+    const stmt = db.prepare(`
+        SELECT 
+            m.data_registro, 
+            m.quantidade, 
+            i.nome, 
+            i.categoria, 
+            i.tamanho
+        FROM estoque_movimentacoes m
+        JOIN estoque_itens i ON m.item_id = i.id
+        WHERE m.beneficiario_id = ? AND m.tipo = 'SAIDA'
+        ORDER BY m.data_registro DESC
+    `);
+    return stmt.all(beneficiarioId);
+};

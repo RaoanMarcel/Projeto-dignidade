@@ -95,3 +95,23 @@ exports.adicionarNotaDiario = async (request, reply) => {
         return reply.status(500).send('<p class="text-rose-500 text-sm font-bold">Erro no servidor ao salvar a nota.</p>');
     }
 };
+
+
+exports.abrirHistoricoDoacoes = async (request, reply) => {
+    try {
+        const id = request.params.id;
+        const pessoa = beneficiarioService.obterPorId(id);
+        
+        if (!pessoa) {
+            return reply.send(beneficiarioView.renderErro("Beneficiário não encontrado."));
+        }
+
+        const historico = beneficiarioService.obterHistoricoDoacoes(id);
+        const html = beneficiarioView.renderModalHistorico(pessoa, historico);
+        
+        return reply.type('text/html').send(html);
+    } catch (err) {
+        console.error("Erro ao carregar histórico:", err);
+        return reply.send(beneficiarioView.renderErro("Erro interno ao carregar o histórico de doações."));
+    }
+};

@@ -4,8 +4,8 @@ const fs = require('fs');
 const buscaController = require('../controllers/busca.controller'); 
 
 async function buscaRoutes(fastify, options) {
-    
-    // Retorna o fragmento da tela de busca (consulta.html)
+
+
     fastify.get('/view-busca', async (request, reply) => {
         try {
             // Usamos path.resolve para garantir o caminho absoluto correto
@@ -38,6 +38,10 @@ async function buscaRoutes(fastify, options) {
     if (buscaController.adicionarAnotacaoDiario) {
         fastify.post('/diario/:id', buscaController.adicionarAnotacaoDiario);
     }
+
+    fastify.get('/beneficiario/:id/historico', buscaController.abrirHistoricoDoacoes);
+
+
 }
 
 module.exports = buscaRoutes;
