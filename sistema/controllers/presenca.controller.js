@@ -114,16 +114,26 @@ exports.exportarExcel = async (request, reply) => {
         }
 
         const historicoCompleto = presencaService.obterHistoricoPorData(data);
-
         const historicoFiltrado = historicoCompleto.filter(h => selecionados.includes(h.id.toString()));
 
-        const dadosPlanilha = historicoFiltrado.map(h => ({
-            'Nome do Acolhido': h.nome,
-            'Documento': h.documento || 'Não informado',
-            'Data/Hora Entrada': new Date(h.data_entrada).toLocaleString('pt-BR'),
-            'Data/Hora Saída': h.data_saida ? new Date(h.data_saida).toLocaleString('pt-BR') : 'Ainda na casa',
-            'Status': h.status === 'ATIVA' ? 'Presente' : 'Baixa'
-        }));
+        const dadosPlanilha = historicoFiltrado.map(h => {
+            let tempoTexto = 'Em andamento';
+            if (h.data_saida) {
+                const diff = new Date(h.data_saida) - new Date(h.data_entrada);
+                const horas = Math.floor(diff / (1000 * 60 * 60));
+                const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                tempoTexto = `${horas}h ${minutos}m`;
+            }
+
+            return {
+                'Nome do Acolhido': h.nome,
+                'Documento': h.documento || 'Não informado',
+                'Data/Hora Entrada': new Date(h.data_entrada).toLocaleString('pt-BR'),
+                'Data/Hora Saída': h.data_saida ? new Date(h.data_saida).toLocaleString('pt-BR') : 'Ainda na casa',
+                'Tempo de Permanência': tempoTexto,
+                'Status': h.status === 'ATIVA' ? 'Presente' : 'Baixa'
+            };
+        });
 
         const worksheet = xlsx.utils.json_to_sheet(dadosPlanilha);
         const workbook = xlsx.utils.book_new();
