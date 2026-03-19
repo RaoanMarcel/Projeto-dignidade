@@ -97,10 +97,27 @@ exports.filtrarHistorico = async (request, reply) => {
 
 exports.exportarExcel = async (request, reply) => {
     try {
-        const data = request.query.data;
-        const historico = presencaService.obterHistoricoPorData(data);
+        const data = request.body.data_exportacao;
+        let selecionados = request.body.selecionados;
 
-        const dadosPlanilha = historico.map(h => ({
+        if (!selecionados) {
+            return reply.type('text/html').send(`
+                <script>
+                    alert('Por favor, selecione pelo menos um acolhido para exportar.');
+                    window.history.back();
+                </script>
+            `);
+        }
+
+        if (!Array.isArray(selecionados)) {
+            selecionados = [selecionados];
+        }
+
+        const historicoCompleto = presencaService.obterHistoricoPorData(data);
+
+        const historicoFiltrado = historicoCompleto.filter(h => selecionados.includes(h.id.toString()));
+
+        const dadosPlanilha = historicoFiltrado.map(h => ({
             'Nome do Acolhido': h.nome,
             'Documento': h.documento || 'Não informado',
             'Data/Hora Entrada': new Date(h.data_entrada).toLocaleString('pt-BR'),

@@ -9,5 +9,6 @@ module.exports = async function (fastify, opts) {
 
     fastify.get('/portaria/historico', presencaController.abrirHistorico);
     fastify.post('/portaria/historico/filtrar', presencaController.filtrarHistorico);
-    fastify.get('/portaria/exportar-excel', presencaController.exportarExcel);
+    
+    fastify.post('/portaria/exportar-excel', presencaController.exportarExcel);
 };
