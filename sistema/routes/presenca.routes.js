@@ -11,4 +11,6 @@ module.exports = async function (fastify, opts) {
     fastify.post('/portaria/historico/filtrar', presencaController.filtrarHistorico);
     
     fastify.post('/portaria/exportar-excel', presencaController.exportarExcel);
+    fastify.get('/portaria/modal-cadastro', presencaController.abrirModalCadastroRapido);
+    fastify.post('/portaria/cadastro-rapido', presencaController.salvarCadastroRapido);
 };
