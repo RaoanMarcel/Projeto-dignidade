@@ -150,3 +150,32 @@ exports.exportarExcel = async (request, reply) => {
         return reply.status(500).send("Erro ao gerar arquivo Excel.");
     }
 };
+
+// Abre o modal
+exports.abrirModalCadastroRapido = async (request, reply) => {
+    try {
+        const html = presencaView.renderModalCadastroRapido();
+        return reply.type('text/html').send(html);
+    } catch (err) {
+        console.error("Erro ao abrir modal rápido:", err);
+        return reply.status(500).send("Erro interno.");
+    }
+};
+
+exports.salvarCadastroRapido = async (request, reply) => {
+    try {
+        const { nome, apelido, idade, documento } = request.body;
+        
+        const novoId = presencaService.criarBeneficiarioRapido({ nome, apelido, idade, documento });
+        
+        presencaService.registrarEntrada([novoId]);
+        
+        const ativos = presencaService.listarAtivosNaCasa();
+        const html = presencaView.renderListaAtivos(ativos);
+        
+        return reply.type('text/html').send(html);
+    } catch (err) {
+        console.error("Erro no cadastro rápido:", err);
+        return reply.status(500).send(`<script>alert("Erro ao cadastrar pessoa rapidamente.");</script>`);
+    }
+};

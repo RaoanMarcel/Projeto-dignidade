@@ -45,3 +45,19 @@ exports.obterHistoricoPorData = (data) => {
     `);
     return stmt.all(data);
 };
+
+exports.criarBeneficiarioRapido = (dados) => {
+    const stmt = db.prepare(`
+        INSERT INTO beneficiarios (nome, apelido, idade, documento) 
+        VALUES (?, ?, ?, ?)
+    `);
+    
+    const info = stmt.run(
+        dados.nome, 
+        dados.apelido || null, 
+        dados.idade || null, 
+        dados.documento || null
+    );
+    
+    return info.lastInsertRowid; 
+};
