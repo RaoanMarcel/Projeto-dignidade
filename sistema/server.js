@@ -19,8 +19,10 @@ fastify.register(require('./routes/cadastro.routes'));
 fastify.register(require('./routes/busca.routes'));
 fastify.register(require('./routes/almoxarifado.routes'));
 fastify.register(require('./routes/presenca.routes')); 
+fastify.register(require('./routes/voluntario.routes.js'));
 
 fastify.post('/diario/:id', buscaController.adicionarNotaDiario);
+
 
 const start = async () => {
     try {

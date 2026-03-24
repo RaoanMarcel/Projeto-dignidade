@@ -10,4 +10,4 @@ module.exports = async function (fastify, opts) {
     fastify.get('/voluntarios/modal-termo/:id', voluntarioController.modalTermo);
     
     fastify.post('/voluntarios/assinar-termo/:id', voluntarioController.assinarTermo);
-};s
+};

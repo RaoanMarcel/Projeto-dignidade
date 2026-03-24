@@ -1,121 +1,135 @@
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Projeto Dignidade - Hub</title>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto Dignidade - Hub</title>
+    
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/imask"></script>
+
+    <style>
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline-flex; }
+        .htmx-request.htmx-indicator { display: inline-flex; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen w-screen overflow-hidden flex font-sans text-slate-800">
+
+    <aside class="group h-full bg-white border-r border-slate-200 flex flex-col shadow-[4px_0_24px_-15px_rgba(0,0,0,0.1)] z-30 transition-all duration-300 ease-in-out w-20 hover:w-72 overflow-hidden shrink-0">
         
-        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/@phosphor-icons/web"></script>
-        <script src="https://unpkg.com/imask"></script>
+        <div class="h-20 flex items-center gap-4 px-5 border-b border-slate-100 shrink-0 whitespace-nowrap">
+            <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-md shrink-0 flex items-center justify-center">
+                <i class="ph ph-hands-praying text-2xl"></i>
+            </div>
+            <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                <h1 class="text-lg font-black text-slate-900 leading-tight">Dignidade</h1>
+                <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Gestão</p>
+            </div>
+        </div>
 
-        <style>
-            .htmx-indicator { display: none; }
-            .htmx-request .htmx-indicator { display: inline-flex; }
-            .htmx-request.htmx-indicator { display: inline-flex; }
-            .no-scrollbar::-webkit-scrollbar { display: none; }
-            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        </style>
-    </head>
-    <body class="bg-slate-100 h-screen w-screen overflow-hidden flex font-sans text-slate-800">
-
-        <aside class="group h-full bg-white border-r border-slate-200 flex flex-col shadow-[4px_0_24px_-15px_rgba(0,0,0,0.1)] z-30 transition-all duration-300 ease-in-out w-20 hover:w-72 overflow-hidden shrink-0">
+        <nav class="flex-1 overflow-y-auto no-scrollbar p-3 flex flex-col gap-2 overflow-x-hidden">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-2 whitespace-nowrap">Menu Principal</p>
             
-            <div class="h-20 flex items-center gap-4 px-5 border-b border-slate-100 shrink-0 whitespace-nowrap">
-                <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-md shrink-0 flex items-center justify-center">
-                    <i class="ph ph-hands-praying text-2xl"></i>
+            <a href="/" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-700 font-bold transition-all whitespace-nowrap cursor-pointer">
+                <i class="ph ph-squares-four text-2xl shrink-0 text-slate-500"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Visão Geral</span>
+            </a>
+
+            <button hx-get="/view-cadastro" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-user-plus text-2xl shrink-0 text-slate-500 group-hover/btn:text-indigo-600 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Novo Acolhido</span>
+            </button>
+            
+            <button hx-get="/view-busca" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-magnifying-glass text-2xl shrink-0 text-slate-500 group-hover/btn:text-emerald-600 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Buscar & Editar</span>
+            </button>
+
+            <button hx-get="/almoxarifado" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-package text-2xl shrink-0 text-slate-500 group-hover/btn:text-amber-500 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Almoxarifado</span>
+            </button>
+            
+            <button hx-get="/portaria" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-door-open text-2xl shrink-0 text-slate-500 group-hover/btn:text-sky-500 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Portaria</span>
+            </button>
+
+            <button hx-get="/voluntarios" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-hand-heart text-2xl shrink-0 text-slate-500 group-hover/btn:text-purple-500 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Voluntários</span>
+            </button>
+        </nav>
+
+        <div class="p-3 border-t border-slate-100 shrink-0 whitespace-nowrap">
+            <div class="flex items-center gap-4 px-2 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="w-10 h-10 shrink-0 rounded-full bg-slate-300 flex items-center justify-center text-slate-500 font-bold">
+                    <i class="ph ph-user text-xl"></i>
                 </div>
-                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                    <h1 class="text-lg font-black text-slate-900 leading-tight">Dignidade</h1>
-                    <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Gestão</p>
+                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p class="text-sm font-bold text-slate-800">Admin</p>
+                    <p class="text-[10px] font-semibold text-slate-500 uppercase">Assistência</p>
                 </div>
             </div>
+        </div>
+    </aside>
 
-            <nav class="flex-1 overflow-y-auto no-scrollbar p-3 flex flex-col gap-2 overflow-x-hidden">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-2 whitespace-nowrap">Menu Principal</p>
-                
-                <a href="/" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-50 text-slate-700 font-bold transition-all whitespace-nowrap cursor-pointer">
-                    <i class="ph ph-squares-four text-2xl shrink-0 text-slate-500"></i>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Visão Geral</span>
-                </a>
-
-                <button hx-get="/view-cadastro" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
-                    <i class="ph ph-user-plus text-2xl shrink-0 text-slate-500 group-hover/btn:text-indigo-600 transition-colors"></i>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Novo Acolhido</span>
-                </button>
-
-                <button hx-get="/view-busca" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
-                    <i class="ph ph-magnifying-glass text-2xl shrink-0 text-slate-500 group-hover/btn:text-emerald-600 transition-colors"></i>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Buscar & Editar</span>
-                </button>
-
-                <button hx-get="/almoxarifado" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
-                    <i class="ph ph-package text-2xl shrink-0 text-slate-500 group-hover/btn:text-amber-500 transition-colors"></i>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Almoxarifado</span>
-                </button>
-                <button hx-get="/portaria" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
-                    <i class="ph ph-door-open text-2xl shrink-0 text-slate-500 group-hover/btn:text-sky-500 transition-colors"></i>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Portaria</span>
-                </button>
-            </nav>
-
-            <div class="p-3 border-t border-slate-100 shrink-0 whitespace-nowrap">
-                <div class="flex items-center gap-4 px-2 py-2 rounded-xl bg-slate-50 border border-slate-200">
-                    <div class="w-10 h-10 shrink-0 rounded-full bg-slate-300 flex items-center justify-center text-slate-500 font-bold">
-                        <i class="ph ph-user text-xl"></i>
-                    </div>
-                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <p class="text-sm font-bold text-slate-800">Admin</p>
-                        <p class="text-[10px] font-semibold text-slate-500 uppercase">Assistência</p>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <main class="flex-1 h-full overflow-hidden flex flex-col relative bg-slate-50/50 transition-all duration-300">
+    <main class="flex-1 h-full overflow-hidden flex flex-col relative bg-slate-50/50 transition-all duration-300">
+        
+        <div id="conteudo-principal" class="flex-1 h-full overflow-y-auto p-8 relative flex justify-center items-center">
             
-            <div id="conteudo-principal" class="flex-1 h-full overflow-y-auto p-8 relative flex justify-center items-center">
+            <div class="max-w-7xl mx-auto w-full flex flex-col h-full justify-center">
+                <header class="mb-10">
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Painel de Controle</h2>
+                    <p class="text-slate-500 font-medium mt-1">Bem-vindo ao sistema. Selecione o módulo que deseja acessar.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
-                <div class="max-w-7xl mx-auto w-full flex flex-col h-full justify-center">
-                    <header class="mb-10">
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Painel de Controle</h2>
-                        <p class="text-slate-500 font-medium mt-1">Bem-vindo ao sistema. Selecione o módulo que deseja acessar.</p>
-                    </header>
+                <button hx-get="/view-cadastro" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all group">
+                    <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><i class="ph ph-user-plus text-3xl"></i></div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors">Novo Acolhido</h3>
+                        <p class="text-sm text-slate-500 font-medium leading-relaxed">Registre a entrada de uma nova pessoa. Preencha dados pessoais, saúde e capture a foto.</p>
+                    </div>
+                </button>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    
-                    <button hx-get="/view-cadastro" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all group">
-                        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><i class="ph ph-user-plus text-3xl"></i></div>
-                        <div>
-                            <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors">Novo Acolhido</h3>
-                            <p class="text-sm text-slate-500 font-medium leading-relaxed">Registre a entrada de uma nova pessoa. Preencha dados pessoais, saúde e capture a foto.</p>
-                        </div>
-                    </button>
+                <button hx-get="/view-busca" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all group">
+                    <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors"><i class="ph ph-magnifying-glass text-3xl"></i></div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-emerald-600 transition-colors">Buscar & Editar</h3>
+                        <p class="text-sm text-slate-500 font-medium leading-relaxed">Pesquise pelo nome ou documento. Visualize a ficha completa, altere status e atualize informações.</p>
+                    </div>
+                </button>
 
-                    <button hx-get="/view-busca" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all group">
-                        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors"><i class="ph ph-magnifying-glass text-3xl"></i></div>
-                        <div>
-                            <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-emerald-600 transition-colors">Buscar & Editar</h3>
-                            <p class="text-sm text-slate-500 font-medium leading-relaxed">Pesquise pelo nome ou documento. Visualize a ficha completa, altere status e atualize informações.</p>
-                        </div>
-                    </button>
+                <button hx-get="/almoxarifado" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-amber-300 transition-all group">
+                    <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors"><i class="ph ph-package text-3xl"></i></div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-amber-500 transition-colors">Almoxarifado</h3>
+                        <p class="text-sm text-slate-500 font-medium leading-relaxed">Gerencie o estoque de doações. Adicione novos itens e distribua produtos de forma justa.</p>
+                    </div>
+                </button>
 
-                    <button hx-get="/almoxarifado" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-amber-300 transition-all group">
-                        <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors"><i class="ph ph-package text-3xl"></i></div>
-                        <div>
-                            <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-amber-500 transition-colors">Almoxarifado</h3>
-                            <p class="text-sm text-slate-500 font-medium leading-relaxed">Gerencie o estoque de doações. Adicione novos itens e distribua produtos de forma justa.</p>
-                        </div>
-                    </button>
+                <button hx-get="/portaria" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-sky-300 transition-all group">
+                    <div class="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors"><i class="ph ph-door-open text-3xl"></i></div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-sky-500 transition-colors">Portaria</h3>
+                        <p class="text-sm text-slate-500 font-medium leading-relaxed">Controle rápido de check-in e check-out. Veja quem está na casa e exporte listas de presença.</p>
+                    </div>
+                </button>
 
-                    <button hx-get="/portaria" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-sky-300 transition-all group">
-                        <div class="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors"><i class="ph ph-door-open text-3xl"></i></div>
-                        <div>
-                            <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-sky-500 transition-colors">Portaria</h3>
-                            <p class="text-sm text-slate-500 font-medium leading-relaxed">Controle rápido de check-in e check-out. Veja quem está na casa e exporte listas de presença.</p>
-                        </div>
-                    </button>
+                <button hx-get="/voluntarios" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-purple-300 transition-all group">
+                    <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-colors"><i class="ph ph-hand-heart text-3xl"></i></div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-purple-600 transition-colors">Voluntários</h3>
+                        <p class="text-sm text-slate-500 font-medium leading-relaxed">Cadastre a equipe voluntária, controle habilidades, turnos disponíveis e termos de adesão.</p>
+                    </div>
+                </button>
 
                 </div>
 
@@ -126,11 +140,17 @@
 
         <script>
             document.body.addEventListener('htmx:afterSwap', function(evt) {
-                const tel = document.getElementById('telefone');
-                if(tel) IMask(tel, { mask: [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-0000' }] });
+                // Máscara para telefones (id ou name="telefone")
+                const telefones = document.querySelectorAll('#telefone, [name="telefone"], [name="telefone_emergencia"]');
+                telefones.forEach(tel => {
+                    IMask(tel, { mask: [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-0000' }] });
+                });
 
-                const doc = document.getElementById('documento');
-                if(doc) IMask(doc, { mask: [{ mask: '000.000.000-00'}, { mask: /^[a-zA-Z0-9.-]+$/ }] });
+                // Máscara para documentos (id ou name="cpf")
+                const documentos = document.querySelectorAll('#documento, [name="cpf"]');
+                documentos.forEach(doc => {
+                    IMask(doc, { mask: [{ mask: '000.000.000-00'}, { mask: /^[a-zA-Z0-9.-]+$/ }] });
+                });
             });
         </script>
     </body>
