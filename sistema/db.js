@@ -4,11 +4,8 @@ const path = require('path');
 const dbPath = path.resolve(__dirname, 'dignidade.db');
 const db = new Database(dbPath, { verbose: console.log });
 
-// 🔥 ATIVAÇÃO DE CHAVES ESTRANGEIRAS
-// Isso garante que os relacionamentos entre tabelas sejam respeitados pelo SQLite
 db.pragma('foreign_keys = ON');
 
-// 1. TABELA DE BENEFICIÁRIOS
 db.exec(`
   CREATE TABLE IF NOT EXISTS beneficiarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +38,6 @@ db.exec(`
   )
 `);
 
-// 2. TABELA DO DIÁRIO DE BORDO
 db.exec(`
     CREATE TABLE IF NOT EXISTS diario_bordo (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +48,6 @@ db.exec(`
     )
 `);
 
-// 3. TABELA DE ESTOQUE - ITENS
 db.exec(`
     CREATE TABLE IF NOT EXISTS estoque_itens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,7 +63,6 @@ db.exec(`
     );
 `);
 
-// 4. TABELA DE ESTOQUE - MOVIMENTAÇÕES
 db.exec(`
     CREATE TABLE IF NOT EXISTS estoque_movimentacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,21 +87,33 @@ db.exec(`
     FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id)
 );`);
 
-// 🛠️ MIGRATIONS (Atualizações para bancos já existentes)
-// Tenta adicionar a coluna 'status'. Se já existir, segue o jogo.
+db.exec(`CREATE TABLE IF NOT EXISTS voluntarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    cpf TEXT UNIQUE NOT NULL,
+    telefone TEXT,
+    email TEXT,
+    area_atuacao TEXT, -- Ex: Cozinha, Administrativo, Triagem
+    disponibilidade TEXT, -- Ex: "Segunda (Manhã), Quarta (Tarde)"
+    nome_emergencia TEXT, -- Opcional
+    telefone_emergencia TEXT, -- Opcional
+    status TEXT DEFAULT 'Ativo', -- Ativo / Inativo
+    termo_assinado INTEGER DEFAULT 0, -- 0 = Não, 1 = Sim
+    data_assinatura_termo DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);`);
+
 try {
     db.exec("ALTER TABLE beneficiarios ADD COLUMN status TEXT DEFAULT 'Acolhido'");
     console.log("✅ Coluna 'status' adicionada ao banco de dados!");
 } catch (err) {
-    // Ignora silenciosamente, a coluna já existe
 }
 
-// Tenta adicionar a coluna 'observacoes'. Se já existir, segue o jogo.
 try {
     db.exec("ALTER TABLE beneficiarios ADD COLUMN observacoes TEXT");
     console.log("✅ Coluna 'observacoes' adicionada ao banco de dados!");
 } catch (err) {
-    // Ignora silenciosamente, a coluna já existe
 }
 
 console.log("✅ Banco de dados SQLite inicializado e estruturado com sucesso!");
