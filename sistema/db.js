@@ -116,6 +116,11 @@ try {
 } catch (err) {
 }
 
+try {
+    db.exec("ALTER TABLE beneficiarios ADD COLUMN idade TEXT");
+    console.log("✅ Coluna 'idade' adicionada ao banco de dados!");
+} catch (err) {
+}
 console.log("✅ Banco de dados SQLite inicializado e estruturado com sucesso!");
 
 module.exports = db;

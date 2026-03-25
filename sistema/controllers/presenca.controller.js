@@ -166,16 +166,18 @@ exports.salvarCadastroRapido = async (request, reply) => {
     try {
         const { nome, apelido, idade, documento } = request.body;
         
-        const novoId = presencaService.criarBeneficiarioRapido({ nome, apelido, idade, documento });
+        const novoId = presencaService.criarBeneficiarioRapido({ nome, apelido, documento });
         
         presencaService.registrarEntrada([novoId]);
         
         const ativos = presencaService.listarAtivosNaCasa();
         const html = presencaView.renderListaAtivos(ativos);
         
+        reply.header('HX-Trigger', 'closeModal');
+        
         return reply.type('text/html').send(html);
     } catch (err) {
         console.error("Erro no cadastro rápido:", err);
-        return reply.status(500).send(`<script>alert("Erro ao cadastrar pessoa rapidamente.");</script>`);
+        return reply.status(500).send(`<script>alert("Erro ao cadastrar: ${err.message}");</script>`);
     }
 };
