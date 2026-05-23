@@ -1,14 +1,11 @@
-// routes/busca.routes.js
 const path = require('path');
 const fs = require('fs');
 const buscaController = require('../controllers/busca.controller'); 
 
 async function buscaRoutes(fastify, options) {
 
-
     fastify.get('/view-busca', async (request, reply) => {
         try {
-            // Usamos path.resolve para garantir o caminho absoluto correto
             const filePath = path.resolve(__dirname, '../public/views/consulta.html');
             
             if (!fs.existsSync(filePath)) {
@@ -24,7 +21,7 @@ async function buscaRoutes(fastify, options) {
         }
     });
 
-    // Realiza a busca no HTMX (processa o input e devolve os cards)
+    // Realiza a busca no HTMX
     fastify.post('/buscar', buscaController.buscarBeneficiario);
     
     // Modais e Detalhes
@@ -34,14 +31,17 @@ async function buscaRoutes(fastify, options) {
     fastify.get('/editar/:id', buscaController.carregarFormularioEdicao);
     fastify.post('/atualizar/:id', buscaController.atualizarBeneficiario);
 
-    // Rota para o diário de bordo (caso não tenha colocado ainda)
+    // Rota para o diário de bordo
     if (buscaController.adicionarAnotacaoDiario) {
         fastify.post('/diario/:id', buscaController.adicionarAnotacaoDiario);
     }
 
     fastify.get('/beneficiario/:id/historico', buscaController.abrirHistoricoDoacoes);
-
-
+    
+    // NOSSAS NOVAS ROTAS AGORA APONTANDO PARA O BUSCA CONTROLLER:
+    fastify.post('/beneficiarios/:id/visitas', buscaController.salvarVisitaIndividual);
+    fastify.get('/atendimentos', buscaController.abrirPaginaAtendimentos);
+    fastify.post('/atendimentos', buscaController.salvarAtendimentoGlobal);
 }
 
 module.exports = buscaRoutes;

@@ -104,6 +104,99 @@ db.exec(`CREATE TABLE IF NOT EXISTS voluntarios (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );`);
 
+db.exec(`
+    CREATE TABLE IF NOT EXISTS atividades (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT NOT NULL,
+        tipo TEXT NOT NULL, -- Ex: 'Coletiva', 'Individual', 'Interna'
+        data_hora DATETIME NOT NULL,
+        voluntario_id INTEGER, -- Quem é o responsável
+        descricao TEXT,
+        feedback TEXT, -- Opcional: resumo de como foi
+        status TEXT DEFAULT 'Agendada', -- 'Agendada', 'Realizada', 'Cancelada'
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (voluntario_id) REFERENCES voluntarios(id) ON DELETE SET NULL
+    )
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS atividade_participantes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        atividade_id INTEGER NOT NULL,
+        beneficiario_id INTEGER NOT NULL,
+        observacao TEXT, -- Opcional: "saiu mais cedo", "não quis participar"
+        FOREIGN KEY (atividade_id) REFERENCES atividades(id) ON DELETE CASCADE,
+        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id) ON DELETE CASCADE,
+        UNIQUE(atividade_id, beneficiario_id) -- Impede de adicionar a mesma pessoa 2x na mesma atividade
+    )
+`);
+
+// ==========================================
+// MÓDULO: FAMÍLIAS E VISITAS
+// ==========================================
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS familias (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome_responsavel TEXT NOT NULL,
+        cpf TEXT,
+        nis TEXT,
+        telefone TEXT,
+        endereco TEXT,
+        quantidade_membros INTEGER,
+        renda_familiar REAL,
+        condicao_moradia TEXT, -- Ex: Própria, Alugada, Cedida
+        observacoes TEXT,
+        data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+`);
+
+// Tabela de ligação: Uma família pode ter vários beneficiários (acolhidos) atrelados a ela.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS familia_beneficiarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        familia_id INTEGER NOT NULL,
+        beneficiario_id INTEGER NOT NULL,
+        grau_parentesco TEXT, -- Ex: Filho, Esposa, Sobrinho
+        FOREIGN KEY (familia_id) REFERENCES familias(id) ON DELETE CASCADE,
+        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id) ON DELETE CASCADE,
+        UNIQUE(familia_id, beneficiario_id)
+    )
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS visitas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        familia_id INTEGER NOT NULL,
+        voluntario_id INTEGER, -- Assistente Social ou Voluntário responsável
+        data_visita DATETIME NOT NULL,
+        motivo TEXT, -- Por que a visita está acontecendo?
+        status TEXT DEFAULT 'Agendada', -- 'Agendada', 'Realizada', 'Cancelada'
+        observacoes TEXT, -- Como foi a visita
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (familia_id) REFERENCES familias(id) ON DELETE CASCADE,
+        FOREIGN KEY (voluntario_id) REFERENCES voluntarios(id) ON DELETE SET NULL
+    )
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS visitas_individuais (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        beneficiario_id INTEGER NOT NULL,
+        voluntario_id INTEGER,
+        data_visita DATETIME NOT NULL,
+        motivo TEXT,
+        status TEXT DEFAULT 'Realizada',
+        observacoes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (beneficiario_id) REFERENCES beneficiarios(id) ON DELETE CASCADE,
+        FOREIGN KEY (voluntario_id) REFERENCES voluntarios(id) ON DELETE SET NULL
+    );
+`);
+
+console.log("✅ Tabelas de Famílias e Visitas verificadas/criadas com sucesso!");
+
+
 try {
     db.exec("ALTER TABLE beneficiarios ADD COLUMN status TEXT DEFAULT 'Acolhido'");
     console.log("✅ Coluna 'status' adicionada ao banco de dados!");

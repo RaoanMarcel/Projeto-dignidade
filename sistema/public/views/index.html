@@ -50,6 +50,16 @@
                 <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Buscar & Editar</span>
             </button>
 
+            <button hx-get="/familias" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-house-line text-2xl shrink-0 text-slate-500 group-hover/btn:text-blue-500 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Famílias</span>
+            </button>
+
+            <button hx-get="/atendimentos" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-stethoscope text-2xl shrink-0 text-slate-500 group-hover/btn:text-teal-500 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Atendimentos</span>
+            </button>
+
             <button hx-get="/almoxarifado" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
                 <i class="ph ph-package text-2xl shrink-0 text-slate-500 group-hover/btn:text-amber-500 transition-colors"></i>
                 <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Almoxarifado</span>
@@ -63,6 +73,11 @@
             <button hx-get="/voluntarios" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
                 <i class="ph ph-hand-heart text-2xl shrink-0 text-slate-500 group-hover/btn:text-purple-500 transition-colors"></i>
                 <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Voluntários</span>
+            </button>
+            
+            <button hx-get="/atividades" hx-target="#conteudo-principal" class="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bold transition-all whitespace-nowrap cursor-pointer text-left group/btn">
+                <i class="ph ph-calendar-check text-2xl shrink-0 text-slate-500 group-hover/btn:text-rose-500 transition-colors"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Atividades</span>
             </button>
         </nav>
 
@@ -107,6 +122,22 @@
                         </div>
                     </button>
 
+                    <button hx-get="/familias" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group">
+                        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors"><i class="ph ph-house-line text-3xl"></i></div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">Famílias e Visitas</h3>
+                            <p class="text-sm text-slate-500 font-medium leading-relaxed">Gerencie cadastros familiares, acompanhe os acolhidos vinculados e registre o histórico de visitas.</p>
+                        </div>
+                    </button>
+
+                    <button hx-get="/atendimentos" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-teal-300 transition-all group">
+                        <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors"><i class="ph ph-stethoscope text-3xl"></i></div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-teal-600 transition-colors">Atendimentos</h3>
+                            <p class="text-sm text-slate-500 font-medium leading-relaxed">Acompanhe as visitas individuais, atendimentos médicos, psicológicos e assistência direta aos acolhidos.</p>
+                        </div>
+                    </button>
+
                     <button hx-get="/almoxarifado" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-amber-300 transition-all group">
                         <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors"><i class="ph ph-package text-3xl"></i></div>
                         <div>
@@ -130,8 +161,21 @@
                             <p class="text-sm text-slate-500 font-medium leading-relaxed">Cadastre a equipe voluntária, controle habilidades, turnos disponíveis e termos de adesão.</p>
                         </div>
                     </button>
+                    
+                    <button hx-get="/atividades" hx-target="#conteudo-principal" class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-6 items-start text-left shadow-sm hover:shadow-xl hover:border-rose-300 transition-all group">
+                        <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors"><i class="ph ph-calendar-check text-3xl"></i></div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 mb-2 group-hover:text-rose-600 transition-colors">Atividades</h3>
+                            <p class="text-sm text-slate-500 font-medium leading-relaxed">Planeje e acompanhe as atividades da organização. Gerencie eventos, reuniões e projetos.</p>
+                        </div>
+                    </button>
 
-                </div> </div> </div> </main> <div id="modal-container"></div>
+                </div> 
+            </div> 
+        </div> 
+    </main> 
+    
+    <div id="modal-container"></div>
 
     <script>
         document.body.addEventListener('htmx:afterSwap', function(evt) {
@@ -149,7 +193,7 @@
         });
 
         document.body.addEventListener('closeModal', function() {
-        document.getElementById('modal-container').innerHTML = '';
+            document.getElementById('modal-container').innerHTML = '';
         });
     </script>
 </body>

@@ -20,6 +20,9 @@ fastify.register(require('./routes/busca.routes'));
 fastify.register(require('./routes/almoxarifado.routes'));
 fastify.register(require('./routes/presenca.routes')); 
 fastify.register(require('./routes/voluntario.routes.js'));
+fastify.register(require('./routes/atividade.routes'));
+fastify.register(require('./routes/familia.routes'));
+
 
 fastify.post('/diario/:id', buscaController.adicionarNotaDiario);
 

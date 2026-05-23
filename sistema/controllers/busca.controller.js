@@ -115,3 +115,62 @@ exports.abrirHistoricoDoacoes = async (request, reply) => {
         return reply.send(beneficiarioView.renderErro("Erro interno ao carregar o histórico de doações."));
     }
 };
+exports.salvarVisitaIndividual = async (request, reply) => {
+    try {
+        const beneficiarioId = request.params.id;
+        const dadosVisita = {
+            beneficiario_id: beneficiarioId,
+            data_visita: request.body.data_visita,
+            motivo: request.body.motivo,
+            status: request.body.status || 'Realizada',
+            observacoes: request.body.observacoes || ''
+        };
+        
+        beneficiarioService.adicionarVisitaIndividual(dadosVisita);
+        const visitas = beneficiarioService.listarVisitasIndividuais(beneficiarioId);
+        
+        // Usa a view que já está importada no topo do arquivo!
+        const htmlVisitas = beneficiarioView.renderListaVisitasIndividuais(visitas);
+        
+        return reply.type('text/html').send(htmlVisitas);
+    } catch (err) {
+        console.error("Erro ao salvar visita individual:", err);
+        return reply.status(500).send(`<div class="text-rose-500 font-bold mt-2">Erro ao registrar atendimento.</div>`);
+    }
+};
+
+exports.abrirPaginaAtendimentos = async (request, reply) => {
+    try {
+        const atendimentos = beneficiarioService.listarTodosAtendimentos();
+        const beneficiarios = beneficiarioService.obterBeneficiariosSimples();
+        
+        const html = beneficiarioView.renderPaginaAtendimentos(atendimentos, beneficiarios);
+        
+        return reply.type('text/html').send(html);
+    } catch (err) {
+        console.error("Erro ao abrir página de atendimentos:", err);
+        return reply.status(500).send("Erro interno ao carregar atendimentos.");
+    }
+};
+
+exports.salvarAtendimentoGlobal = async (request, reply) => {
+    try {
+        const dadosVisita = {
+            beneficiario_id: request.body.beneficiario_id,
+            data_visita: request.body.data_visita,
+            motivo: request.body.motivo,
+            status: request.body.status || 'Realizada',
+            observacoes: request.body.observacoes || ''
+        };
+        
+        beneficiarioService.adicionarVisitaIndividual(dadosVisita);
+        
+        const atendimentos = beneficiarioService.listarTodosAtendimentos();
+        const htmlLista = beneficiarioView.renderListaAtendimentosGlobal(atendimentos);
+        
+        return reply.type('text/html').send(htmlLista);
+    } catch (err) {
+        console.error("Erro ao salvar atendimento:", err);
+        return reply.status(500).send(`<div class="text-rose-500 font-bold mt-2">Erro ao registrar atendimento.</div>`);
+    }
+};

@@ -67,3 +67,37 @@ exports.obterHistoricoDoacoes = (beneficiarioId) => {
     `);
     return stmt.all(beneficiarioId);
 };
+
+// Adicione no final do beneficiario.service.js
+
+exports.adicionarVisitaIndividual = (dados) => {
+    const stmt = db.prepare(`
+        INSERT INTO visitas_individuais (beneficiario_id, data_visita, motivo, status, observacoes) 
+        VALUES (@beneficiario_id, @data_visita, @motivo, @status, @observacoes)
+    `);
+    return stmt.run(dados).lastInsertRowid;
+};
+
+exports.listarVisitasIndividuais = (beneficiarioId) => {
+    return db.prepare(`
+        SELECT * FROM visitas_individuais 
+        WHERE beneficiario_id = ? 
+        ORDER BY data_visita DESC
+    `).all(beneficiarioId);
+};
+
+// Adicione no final do beneficiario.service.js
+
+exports.listarTodosAtendimentos = () => {
+    return db.prepare(`
+        SELECT v.*, b.nome as beneficiario_nome 
+        FROM visitas_individuais v
+        JOIN beneficiarios b ON v.beneficiario_id = b.id
+        ORDER BY v.data_visita DESC
+    `).all();
+};
+
+exports.obterBeneficiariosSimples = () => {
+    // Busca apenas id e nome para preencher o select do formulário
+    return db.prepare("SELECT id, nome FROM beneficiarios ORDER BY nome ASC").all();
+};
